@@ -1,0 +1,4 @@
+species,role,observed_count,breeding_pairs,territory_km2,year,source
+Sparrowhawk,predator,35000,35000,6.0,2023,BTO
+Blue Tit,prey,3400000,1700000,0.01,2023,BTO
+House Sparrow,prey,5100000,1800000,0.005,2023,RSPB
