@@ -25,7 +25,7 @@ class EcosystemConfig:
 
     # Wolf parameters
     wolf_reproduce: float = 0.05        # probability per step
-    wolf_gain_from_food: int = 20       # energy gained from eating sheep
+    wolf_gain_from_food: int = 25       # energy gained from eating sheep
 
     # Grass parameters
     grass_regrowth_time: int = 30       # steps for grass to regrow

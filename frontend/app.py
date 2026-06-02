@@ -7,6 +7,10 @@ Run with:
 Imports ONLY from simulation.runner and data.loader — no direct model imports.
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import io
 import datetime
 from typing import Optional
@@ -45,7 +49,10 @@ sheep_reproduce_slider = pn.widgets.FloatSlider(
     name="Sheep Reproduce Rate", start=0.01, end=0.2, step=0.01, value=0.04
 )
 wolf_reproduce_slider = pn.widgets.FloatSlider(
-    name="Wolf Reproduce Rate", start=0.01, end=0.2, step=0.01, value=0.05
+    name="Wolf Reproduce Rate", start=0.01, end=0.2, step=0.01, value=0.03
+)
+wolf_gain_slider = pn.widgets.IntSlider(
+    name="Wolf Gain from Food", start=1, end=50, value=25
 )
 grass_regrowth_slider = pn.widgets.IntSlider(
     name="Grass Regrowth Time", start=5, end=100, value=30
@@ -105,6 +112,7 @@ def _build_eco_config() -> EcosystemConfig:
         initial_wolves=wolves_slider.value,
         sheep_reproduce=sheep_reproduce_slider.value,
         wolf_reproduce=wolf_reproduce_slider.value,
+        wolf_gain_from_food=wolf_gain_slider.value,
         grass_regrowth_time=grass_regrowth_slider.value,
         seed=seed_input.value,
     )
@@ -210,10 +218,14 @@ def _summary_df(result: RunResult, seed: int) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["Metric", "Value"])
 
 
-def on_run_clicked(event):
+async def on_run_clicked(event):
+    import asyncio
     global _last_result
+    run_button.loading = True
+    run_button.disabled = True
     status_text.value = "Running…"
     export_button.disabled = True
+    await asyncio.sleep(0)  # yield so "Running…" reaches the browser before blocking work
     try:
         eco_cfg = _build_eco_config()
         rc = RunConfig(
@@ -222,7 +234,7 @@ def on_run_clicked(event):
             seed=seed_input.value,
             stop_on_extinction=True,
         )
-        result = _runner.run(rc)
+        result = await asyncio.get_event_loop().run_in_executor(None, _runner.run, rc)
         _last_result = result
 
         population_pane.object = _population_figure(result)
@@ -237,6 +249,9 @@ def on_run_clicked(event):
         export_button.disabled = False
     except Exception as exc:
         status_text.value = f"Error: {exc}"
+    finally:
+        run_button.loading = False
+        run_button.disabled = False
 
 
 def on_export_clicked(event):
@@ -306,7 +321,8 @@ sidebar = pn.Accordion(
         pn.Column(
             sheep_slider, wolves_slider,
             sheep_reproduce_slider, wolf_reproduce_slider,
-            grass_regrowth_slider, steps_slider, seed_input,
+            wolf_gain_slider, grass_regrowth_slider,
+            steps_slider, seed_input,
         ),
     ),
     (

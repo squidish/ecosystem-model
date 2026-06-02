@@ -64,6 +64,10 @@ class Sheep(Agent):
         super().__init__(model)
         self.energy = energy
 
+    def remove(self) -> None:
+        self.model.grid.remove_agent(self)
+        super().remove()
+
     def step(self) -> None:
         self._move()
         self._eat_grass()
@@ -119,6 +123,10 @@ class Wolf(Agent):
     def __init__(self, model, energy: int) -> None:
         super().__init__(model)
         self.energy = energy
+
+    def remove(self) -> None:
+        self.model.grid.remove_agent(self)
+        super().remove()
 
     def step(self) -> None:
         self._move()
